@@ -21,6 +21,9 @@
     --accent-text: #ffffff;
   }
   * { box-sizing: border-box; font-family: inherit; }
+  html {
+    font-size: 82%;
+  }
   html, body {
     margin: 0;
     padding: 0;
@@ -45,8 +48,8 @@
     padding: 24px 32px 40px;
   }
   header h1 {
-    font-size: 1.6rem;
-    margin: 0 0 2px;
+    font-size: 1rem;
+    margin: 0 0 1px;
     letter-spacing: 0.02em;
     display: flex;
     align-items: baseline;
@@ -55,15 +58,15 @@
   }
   header h1 .mark { color: var(--accent); }
   header h1 .credit {
-    font-size: 0.7rem;
+    font-size: 0.55rem;
     font-weight: 400;
     color: var(--muted);
     letter-spacing: 0;
   }
   header p {
-    margin: 0 0 24px;
+    margin: 0;
     color: var(--muted);
-    font-size: 0.9rem;
+    font-size: 0.7rem;
   }
   .layout {
     display: flex;
@@ -316,8 +319,8 @@
   @media (max-width: 599px) {
     .wrap { padding: 12px 4px 20px; }
     header { padding-left: 8px !important; padding-right: 8px !important; }
-    header h1 { font-size: 1.2rem; }
-    header p { font-size: 0.8rem; }
+    header h1 { font-size: 0.85rem; }
+    header p { font-size: 0.6rem; }
     .panel { padding: 8px; }
     .chart-panel { padding: 4px; min-height: 0; }
     .panel h2 { font-size: 0.78rem; }
@@ -346,7 +349,7 @@
 </style>
 </head>
 <body>
-<header style="background:#f8f9fa; padding:10px 32px; position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; width:100vw; text-align:left;">
+<header style="background:#f8f9fa; padding:4px 32px; position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; width:100vw; text-align:left;">
   <h1 style="color:#000000;">あるけみ市場価格グラフ</h1>
   <p id="statusLine" class="status-line" style="color:#000000;">読み込み中…</p>
   <p id="lastUpdatedLine" class="status-line" style="color:#000000;"></p>
