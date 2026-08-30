@@ -1,0 +1,421 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>あるけみ市場価格グラフ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kurenaido&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2fa;
+    --panel: rgba(248, 249, 250, 0.72);
+    --panel-2: rgba(244, 240, 251, 0.72);
+    --border: #ddd4ec;
+    --text: #3d3552;
+    --muted: #8b83a0;
+    --accent: #7e7a7e;
+    --accent-soft: rgba(155, 127, 212, 0.12);
+    --accent-text: #ffffff;
+  }
+  * { box-sizing: border-box; font-family: inherit; }
+  html {
+    font-size: 82%;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    color: var(--text);
+    font-family: "Zen Kurenaido";
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  body {
+    background-image:
+      linear-gradient(rgba(248, 249, 250, 0.75), rgba(248, 249, 250, 0.75)),
+      url("cherry-blossom.jpg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+  .layout, .layout > *, .lower-grid, .lower-grid > * { min-width: 0; }
+  .wrap {
+    max-width: 1880px;
+    margin: 0 auto;
+    padding: 24px 32px 40px;
+  }
+  header h1 {
+    font-size: 1rem;
+    margin: 0 0 1px;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  header h1 .mark { color: var(--accent); }
+  header h1 .credit {
+    font-size: 0.55rem;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.7rem;
+  }
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .lower-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 900px) {
+    .lower-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+  }
+  .chart-sub-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .chart-sub-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    flex: 0 0 auto;
+  }
+  .verdict-craft { color: #4fb0c6; font-weight: 700; }
+  .verdict-buy { color: #8bc34a; font-weight: 700; }
+  .verdict-even { color: var(--muted); }
+  .panel {
+    background: var(--panel);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(155, 127, 212, 0.08);
+  }
+  .panel h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin: 0 0 12px;
+  }
+  .panel-summary {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-summary::-webkit-details-marker { display: none; }
+  .panel-summary::before {
+    content: '▸';
+    display: inline-block;
+    font-size: 1.3em;
+    transition: transform 0.15s ease;
+  }
+  details[open] > .panel-summary::before { transform: rotate(90deg); }
+  button {
+    background: var(--accent);
+    color: var(--accent-text);
+    border: none;
+    border-radius: 0;
+    padding: 10px 18px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+  .hint {
+    margin-top: 10px;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+  .chart-panel { min-height: 640px; padding: 24px; }
+  .chart-panel #chartTitle { font-size: 1.2rem; }
+  .chart-canvas-wrap { position: relative; width: 100%; height: 560px; }
+  #chart { width: 100%; display: block; }
+  .chart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .chart-head h2 { margin: 0; }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .seg-btn {
+    background: var(--panel-2);
+    color: var(--muted);
+    border: none;
+    border-radius: 0;
+    padding: 7px 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .seg-btn:hover { filter: none; color: var(--text); }
+  .seg-btn.active { background: var(--accent); color: var(--accent-text); }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .tab {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 0;
+    padding: 5px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+  }
+  .tab:hover { border-color: var(--accent); color: var(--text); }
+  .tab.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tab .count {
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 5px;
+    font-size: 0.75rem;
+  }
+  .tab.active .count { color: var(--accent); }
+  .picker { margin-bottom: 14px; }
+  .picker-head {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  #search {
+    flex: 1;
+    min-width: 0;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  #search:focus { outline: none; border-color: var(--accent); }
+  button.mini {
+    padding: 7px 12px;
+    font-size: 0.78rem;
+    border-radius: 0;
+  }
+  button.ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  button.ghost:hover { border-color: var(--accent); color: var(--text); filter: none; }
+  .picker-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 148px;
+    overflow-y: auto;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    background: var(--panel-2);
+  }
+  .pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 0;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .pick .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+  .pick.on { color: var(--text); border-color: var(--accent); }
+  .pick .fav-star {
+    font-size: 0.9rem;
+    line-height: 1;
+    color: var(--border);
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  .pick .fav-star.active { color: #e0a94b; }
+  .pick .fav-star:hover { color: #e0a94b; }
+  .picker-empty { color: var(--muted); font-size: 0.8rem; padding: 8px; }
+  .swatch { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  td.num, th.num { text-align: right; }
+  .delta-up { color: #e07a5f; font-weight: 700; }
+  .delta-down { color: #4fb0c6; font-weight: 700; }
+  .delta-flat { color: var(--muted); }
+  .empty { color: var(--muted); font-size: 0.85rem; padding: 12px 0; }
+  .status-line {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-bottom: 4px;
+  }
+  .status-line.err { color: #e07a5f; }
+  .level-toggle-wrap { margin-top: 12px; }
+  .level-toggle-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+  .level-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; padding: 6px 12px; border-radius: 0;
+    border: 1px solid var(--border); background: var(--panel-2);
+    cursor: pointer; user-select: none;
+  }
+  .level-toggle.is-hidden { color: var(--muted); opacity: 0.6; }
+  .table-scroll { overflow-x: auto; }
+
+  @media (max-width: 599px) {
+    .chart-canvas-wrap { height: 420px; }
+    .wrap { padding: 12px 4px 20px; }
+    header { padding-left: 8px !important; padding-right: 8px !important; }
+    header h1 { font-size: 0.85rem; }
+    header p { font-size: 0.6rem; }
+    .panel { padding: 8px; }
+    .chart-panel { padding: 4px; min-height: 0; }
+    .panel h2 { font-size: 0.78rem; }
+    .chart-head { flex-direction: column; align-items: stretch; gap: 8px; }
+    .chart-head h2 { font-size: 1rem; }
+    .seg { align-self: stretch; }
+    .seg-btn { flex: 1; text-align: center; }
+    .picker-head { flex-wrap: wrap; }
+    #search { flex: 1 1 100%; }
+    button.mini { flex: 1; }
+    .tabs { gap: 6px; }
+    .tab { padding: 5px 10px; font-size: 0.78rem; }
+  th, td { padding: 5px 6px; font-size: 0.76rem; }
+    .table-scroll {
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 0;
+    }
+    .table-scroll table { min-width: 560px; }
+    .table-scroll th, .table-scroll td { white-space: nowrap; }
+    .table-scroll thead th { position: sticky; top: 0; background: var(--panel); }
+    .layout { gap: 12px; }
+    .lower-grid { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<header style="background:#f8f9fa; padding:4px 32px; position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; width:100vw; text-align:left;">
+  <h1 style="color:#000000;">あるけみ市場価格グラフ</h1>
+  <p id="statusLine" class="status-line" style="color:#000000;">読み込み中…</p>
+  <p id="lastUpdatedLine" class="status-line" style="color:#000000;"></p>
+</header>
+<div class="wrap">
+  <div class="layout">
+    <div class="panel chart-panel">
+      <div class="chart-head">
+        <h2 id="chartTitle">日付ごとの価格推移</h2>
+        <div class="seg" id="rangeSeg">
+          <button type="button" class="seg-btn" data-days="7">7日</button>
+          <button type="button" class="seg-btn" data-days="14">14日</button>
+          <button type="button" class="seg-btn" data-days="30">30日</button>
+          <button type="button" class="seg-btn active" data-days="0">すべて</button>
+        </div>
+      </div>
+      <div class="tabs" id="tabs"></div>
+      <div class="picker">
+        <div class="picker-head">
+          <input type="search" id="search" placeholder="アイテム名で検索…" autocomplete="off" />
+          <button type="button" class="mini" id="selAll">全選択</button>
+          <button type="button" class="mini ghost" id="selNone">全解除</button>
+        </div>
+        <div class="picker-list" id="pickerList"></div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="chart"></canvas>
+      </div>
+      <div class="level-toggle-wrap">
+        <div class="chart-sub-label">表示する強化値</div>
+        <div class="level-toggle-list" id="levelToggleList"></div>
+      </div>
+    </div>
+
+    <div class="lower-grid">
+      <div class="panel" style="grid-column: 1 / -1;">
+        <details open>
+          <summary class="panel-summary">お気に入り</summary>
+          <p class="hint" style="margin-top:8px;">アイテム選択リストの☆でお気に入り登録すると、平均価格と現在価格を比べて買い時かどうかをここで確認できます。</p>
+          <div id="favoritesWrap"></div>
+        </details>
+      </div>
+      <div class="panel">
+        <details>
+          <summary class="panel-summary">お買い得情報</summary>
+          <p class="hint" style="margin-top:8px;">1つ前の強化値を合成するコストと、直接購入した場合の市場価格を比較します。</p>
+          <div class="chart-sub-row">
+            <label style="display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--muted); cursor:pointer;">
+              <input type="checkbox" id="ladderPricingToggle" />
+              価格のブレを含んで計算する
+            </label>
+          </div>
+          <div id="craftWrap"></div>
+        </details>
+      </div>
+      <div class="panel">
+        <details>
+          <summary class="panel-summary">増減</summary>
+          <div id="tableWrap" style="margin-top:8px;"></div>
+        </details>
+      </div>
+      <div class="panel" style="grid-column: 1 / -1;">
+        <details>
+          <summary class="panel-summary">平均価格</summary>
+          <p class="hint" style="margin-top:8px;">選択中の期間・アイテムにおける、強化値ごとの平均価格です。</p>
+          <div id="avgWrap"></div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+<footer style="background:#f8f9fa; padding:20px 0; position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; width:100vw; text-align:center;">
+  <p class="status-line" id="dataSpanLine" style="margin:0; color:#000000;"></p>
+  <p class="credit" style="margin:8px 0 0; font-size:0.7rem; color:#000000;">製作者：みるか</p>
+  <p class="hint" style="margin:6px 0 0; color:#8b83a0;">※手動でデータ入力しているためばらつきがあります。ご了承ください。</p>
+</footer>
+<button type="button" id="scrollTopBtn" aria-label="上に戻る" style="display:none; align-items:center; justify-content:center; position:fixed; right:16px; bottom:16px; width:48px; height:48px; border-radius:50%; background:var(--accent); color:var(--accent-text); border:none; font-size:1.2rem; line-height:1; padding:0; box-shadow:0 2px 8px rgba(0,0,0,0.25); z-index:30; cursor:pointer;">▲</button>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
