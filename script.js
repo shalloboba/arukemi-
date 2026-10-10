@@ -493,9 +493,12 @@ function filteredSeries(){
   return series.filter(s => s.base.toLowerCase().includes(q));
 }
 
+let pickerScroll = 0;
+pickerListEl.addEventListener('scroll', () => { pickerScroll = pickerListEl.scrollTop; }, { passive: true });
+
 function drawPicker(){
   const list = filteredSeries();
-  const scrollTop = pickerListEl.scrollTop;
+  const scrollTop = pickerScroll;   // scrollTopを直接読むと強制リフローになるので、スクロールイベントで保存した値を使う
   if (series.length === 0){
     pickerListEl.innerHTML = '<div class="picker-empty">アイテムがありません。</div>';
     return;
@@ -511,7 +514,7 @@ function drawPicker(){
     html += `<div class="pick${on ? ' on' : ''}" data-base="${escapeHtml(s.base)}"><span class="fav-star${isFav ? ' active' : ''}">${isFav ? '★' : '☆'}</span><span class="dot" style="background:${on ? s.color : 'var(--border)'}"></span>${escapeHtml(s.base)}</div>`;
   }
   pickerListEl.innerHTML = html;
-  pickerListEl.scrollTop = scrollTop;   // 選択のたびに先頭へ戻らないようにする
+  if (scrollTop > 0) pickerListEl.scrollTop = scrollTop;   // 選択のたびに先頭へ戻らないようにする(0なら触らない)
 }
 
 // リストの要素ごとではなく親で1回だけクリックを受ける
@@ -946,7 +949,7 @@ document.getElementById('selNone').onclick = () => {
 // ---- Realtime: DBの追加/修正/削除をWebSocketで受け取る ----
 // 事前にDB側で `alter publication supabase_realtime add table price_records;` が必要(realtime_setup.sql参照)。
 // 未設定でも動作はするが、その場合は従来どおり定期再同期(REFRESH_MS)だけで更新される。
-const SUPABASE_JS_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+const SUPABASE_JS_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2';
 const REFRESH_MS_LIVE = 30 * 60 * 1000;   // Realtime接続中は、保険の再同期を30分に1回にする
 let rtStarted = false;
 let rtConnected = false;

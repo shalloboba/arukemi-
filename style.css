@@ -30,7 +30,7 @@ body::before {
   z-index: -1;
   background-image:
     linear-gradient(rgba(248, 249, 250, 0.75), rgba(248, 249, 250, 0.75)),
-    url("cherry-blossom.jpg");
+    url("cherry-blossom.webp");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -180,6 +180,7 @@ button:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 14px;
+  min-height: 32px;           /* タブ描画前後の高さ変化を防ぐ(CLS対策) */
 }
 .tab {
   background: var(--panel-2);
@@ -238,7 +239,8 @@ button.ghost:hover { border-color: var(--accent); color: var(--text); filter: no
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 148px;
+  height: 148px;              /* 中身が入る前後で高さを変えない(CLS対策) */
+  align-content: flex-start;
   overflow-y: auto;
   padding: 4px;
   border: 1px solid var(--border);
@@ -283,10 +285,11 @@ td.num, th.num { text-align: right; }
   color: var(--muted);
   font-size: 0.78rem;
   margin-bottom: 4px;
+  min-height: 1.5em;          /* 文字が入る前後で高さを変えない(CLS対策) */
 }
 .status-line.err { color: #e07a5f; }
 .level-toggle-wrap { margin-top: 12px; }
-.level-toggle-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.level-toggle-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; min-height: 34px; }
 .level-toggle {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 0.82rem; padding: 6px 12px; border-radius: 0;
